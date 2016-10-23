@@ -49,7 +49,7 @@ var ViewModelMapApp = function() {
 			var map = new google.maps.Map(document.getElementById('map'), {
 			  center: loc,
 			  scrollwheel: false,
-			  zoom: 10
+			  zoom: 16
 			});
 
 			var request = {
@@ -66,7 +66,7 @@ var ViewModelMapApp = function() {
 				// If the request succeeds, draw the place location on
 				// the map as a marker, and register an event to handle a
 				// click on the marker.
-				if (status == google.maps.places.PlacesServiceStatus.OK) {
+				if (status === google.maps.places.PlacesServiceStatus.OK) {
 					for (var i = 0; i < results.length; i++) {
 					  	var place = results[i];
 					  	//I check if rating for restaurant exists
@@ -137,7 +137,7 @@ var ViewModelMapApp = function() {
 		//if not remove the elements
 		for (var i=0; i<self.RestaurantsList().length; i++) {
 			strRestaurant = self.RestaurantsList()[i].name.toLowerCase();
-			if (strRestaurant.indexOf(str) == -1) {
+			if (strRestaurant.indexOf(str) === -1) {
 				self.restaurant = self.RestaurantsList()[i];
 				self.removedRestaurants.push(self.restaurant);
 				self.RestaurantsList.splice(i, 1);
@@ -211,7 +211,7 @@ var ViewModelMapApp = function() {
 			      var location = results.businesses[0].location.address[0];
 			      var locationArray, categories;
 			      console.log("SUCCCESS! %o", results);
-			      if (location == undefined) {
+			      if (location === undefined || location === null) {
 			      	self.modal("<p>Sorry, Yelp couldn't find the requested restaurant!</p>");
 			      }
 			      else {
@@ -245,6 +245,8 @@ var ViewModelMapApp = function() {
 
 	}
 
+	$("#city").val("Colombo");
+	self.initMap();
 }
 
 

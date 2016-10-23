@@ -1,57 +1,6 @@
 // Set up the  data Model
 
 var Model = {
-    points: [
-        {
-        name: "Nature's Bounty Cafe & Catering",
-        lat: 38.0159428, 
-        long: -121.8128857,
-        url:  'http://naturesbountycafe.com/',
-        yelpID: 'natures-bounty-cafe-antioch',
-        },
-        {
-        name: "Rick's On Second",
-        lat: 38.0167263,
-        long: -121.8142826,
-        url:  'http://www.ricksonsecond.com/',
-        yelpID: 'ricks-on-second-antioch',
-        },
-        {
-        name: "Riverview Lodge Restaurant",
-        lat: 38.0181891,
-        long: -121.8155961,
-        url:  'http://www.riverviewlodgeantioch.com/',
-        yelpID: 'riverview-lodge-antioch',
-        },
-        {  
-        name: "Beer Garden",
-        lat: 38.0161142,
-        long: -121.8115575,
-        url:  '',
-        yelpID: 'new-beer-garden-antioch-2',
-        },
-        {
-        name: "Canton City",
-        lat: 38.0164977,
-        long: -121.8136215,
-        url:  'http://www.arapahoebasin.com/Abasin/Default.aspx',
-        yelpID: 'canton-city-antioch',
-        },
-        {
-        name: "Nuce Nuce Deli",
-        lat: 38.0174452,
-        long: -121.8149326,
-        url:  'http://www.lakedillontavern.com/',
-        yelpID: 'nuce-nuce-deli-antioch',
-        },
-        { 
-        name: "Red Caboose",
-        lat: 38.0160715,
-        long: -121.8048994,
-        url:  'http://www.snakeriversaloon.com/',
-        yelpID: 'the-red-caboose-antioch',
-        }, 
-    ],
     currentPoint: ko.observable(null)
 };
 
