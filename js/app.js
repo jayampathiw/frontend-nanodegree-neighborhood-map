@@ -212,7 +212,7 @@ var ViewModelMapApp = function() {
 			      var locationArray, categories;
 			      console.log("SUCCCESS! %o", results);
 			      if (location === undefined || location === null) {
-			      	self.modal("<p>Sorry, Yelp couldn't find the requested restaurant!</p>");
+			    	  self.modal("<p>no information available for this location from Yelp</p>");
 			      }
 			      else {
 				      locationArray = location.split(" ");
@@ -233,7 +233,7 @@ var ViewModelMapApp = function() {
 		      }
 		      catch(err) {
 		    	  console.log("error");
-			      self.modal("<p>Sorry, Yelp doesn't support your city!</p>");
+			      self.modal("<p>no information available for this location from Yelp</p>");
 		      }
 		    },
 		    error: function(error) {
