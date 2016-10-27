@@ -34,7 +34,7 @@
 						</form>
 						<ul data-bind="foreach: RestaurantsList">
 							<li class="restaurant">
-							Name: <a href="#" data-toggle="modal" data-target="#myModal"> <span data-bind="text: name, click: $parent.infoFunction"></span></a><br>
+							Name: <span data-bind="text: name, click: $parent.infoFunction"></span></a><br>
 								Rating: <span data-bind="text: rating"></span><br>
 								Address: <span data-bind="text: address"></span><br>
 							</li>
@@ -45,26 +45,6 @@
 				</div>
 
 			</section>
-
-			<!-- Modal -->
-			<div id="myModal" class="modal fade" role="dialog">
-			  <div class="modal-dialog">
-
-			    <!-- Modal content-->
-			    <div class="modal-content">
-			      <div class="modal-header">
-			        <button type="button" class="close" data-dismiss="modal">&times;</button>
-			        <h4 class="modal-title"></h4>
-			      </div>
-			      <div class="modal-body" data-bind="html: modal">
-			      </div>
-			      <div class="modal-footer">
-			        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-			      </div>
-			    </div>
-
-			  </div>
-			</div>
 		</div>
 		<script src="js/jquery.min.js"></script>
 		<script src="js/bootstrap.min.js"></script>
