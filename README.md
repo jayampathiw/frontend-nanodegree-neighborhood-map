@@ -4,7 +4,7 @@ This project is done as a udacity **Front-End Web Developer** practical project 
 
 ###How to View This Page
 
-Visit the page: [https://jayampathiw.github.io/neighborhood-project/](https://jayampathiw.github.io/neighborhood-project/)
+Visit the page: [https://jayampathiw.github.io/frontend-nanodegree-neighborhood-map/](https://jayampathiw.github.io/frontend-nanodegree-neighborhood-map/)
 
 
 ###How the application works
@@ -14,9 +14,7 @@ Visit the page: [https://jayampathiw.github.io/neighborhood-project/](https://ja
 * The list of locations are filterable with a text input. Filtering the list also filters the markers on the map.
 
 ###Techonologies used
-* Bootstrap
 * Knockout
-* BootBox
 * jQuery
 * Google Maps APIs
 * Yelp API v2

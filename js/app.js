@@ -8,7 +8,7 @@ var Restaurant = function(name, vicinity, rating, currentMap, marker) {
 	this.marker = marker;
 }
 
-var basicInfowindow;
+var basicInfowindow, defaultIcon, clickedIcon;
 
 //View Model
 
@@ -29,6 +29,8 @@ var ViewModelMapApp = function() {
 	}
 	
 	basicInfowindow = new google.maps.InfoWindow();
+	defaultIcon = makeMarkerIcon('a82848');
+	clickedIcon = makeMarkerIcon('f79336');
 
 	//Init map, markers and initialRestaurants
 	self.initMap = function() {
@@ -87,6 +89,8 @@ var ViewModelMapApp = function() {
 					     	position: place.geometry.location
 						});
 						self.markers.push(marker);
+						
+						self.clearClickedMarkers();
 
 
 
@@ -96,6 +100,7 @@ var ViewModelMapApp = function() {
 					    //display streetview thumbnail when user hovers on marker
 					    (function (i) {
 							google.maps.event.addListener(self.markers[i], 'mouseover', function() {
+								self.clearClickedMarkers();
 								console.log(self.markers[i].position.lng());
 								var contentStr = '<h5><strong>' + self.RestaurantsList()[i].name + '</strong></h5>' + 
 											  '<div id="infoWindowStreetview"><img src="https://maps.googleapis.com/maps/api/streetview?size=200x200&location=' + self.RestaurantsList()[i].marker.position.lat() + ',' + self.RestaurantsList()[i].marker.position.lng() + '&heading=151.78&pitch=-0.76&key=AIzaSyBS025Zl1N-CLVM05-O0_vVO-4heTIpP38"></div>';
@@ -177,102 +182,152 @@ var ViewModelMapApp = function() {
 	}
 	
 	self.showmakerInfowindow = function(restaurant) {
+		self.clearClickedMarkers();
 		console.log(restaurant.marker.position.lng());
-		var contentStr = '<h5><strong>' + restaurant.name + '</strong></h5>' + 
-					  '<div id="infoWindowStreetview"><img src="https://maps.googleapis.com/maps/api/streetview?size=200x200&location=' + restaurant.marker.position.lat() + ',' + restaurant.marker.position.lng() + '&heading=151.78&pitch=-0.76&key=AIzaSyBS025Zl1N-CLVM05-O0_vVO-4heTIpP38"></div>';
-			
-		console.log(contentStr);
-		if(basicInfowindow === null || basicInfowindow === undefined){
-			basicInfowindow = new google.maps.InfoWindow();
-		} else {
-			basicInfowindow.close();
-		}
-		basicInfowindow.setContent(contentStr); 
-
-		basicInfowindow.open(map, restaurant.marker);
+		
+		self.YelpRequest(restaurant.name, restaurant.address, restaurant.marker);
+		
+		restaurant.marker.clicked = true;
+		restaurant.marker.setIcon(clickedIcon);
 
 	}
+	
+	self.clearClickedMarkers = function() {
+		for (var i = 0; i < self.markers.length; i++) {
+		    self.markers[i].setIcon(defaultIcon);
+		}
+	};
+	
+	self.YelpRequest = function(name, address, marker){
+		var auth = {
+                //
+                // Update with your auth tokens.
+                //
+                consumerKey: "GxDpARmBNKqhlcndGphepQ",
+                consumerSecret: "NuvRdCz-quyCL9mFKTX-nRXA6yE",
+                accessToken: "4yfVCfvWUDAkAUOJiPw0XGawdbX6mcuR",
+                accessTokenSecret: "Gk7hczpEfoeVj-CDOEZY-vcKPSM",
+                serviceProvider : {
+                    signatureMethod : "HMAC-SHA1"
+                }
+            };
+    
+            var terms = 'restaurant';
+            var near = address;
+            
+    
+            var accessor = {
+                consumerSecret : auth.consumerSecret,
+                tokenSecret : auth.accessTokenSecret
+            };
 
-//	self.YelpRequest = function(name, address) {
-//		function nonce_generate() {
-//			return (Math.floor(Math.random() * 1e12).toString());
-//		};
-//
-//		var yelp_url = 'https://api.yelp.com/v2/search?';
-//
-//	    var parameters = {
-//	   		term: "restaurant",
-//	    	location: address,
-//	    	radius_filter: "0.1",
-//	    	limit: 1,
-//	    	oauth_consumer_key: 'wpu8WCsLsM8HWhWKBevgoQ',
-//	    	oauth_token: 'zFrQV7GKkgtDmbSMrMMFOZ5xyPVB_Ps8',
-//	    	oauth_nonce: nonce_generate(),
-//	    	oauth_timestamp: Math.floor(Date.now()/1000),
-//	    	oauth_signature_method: 'HMAC-SHA1',
-//	    	oauth_version: '1.0',
-//	    	callback: 'cb'             // This is crucial to include for jsonp implementation in AJAX or else the oauth-signature will be wrong.
-//	  	};
-//		  
-//		var consumer_secret = 'trm_jAkT2XCvzDDgxPo2Uuj5vvg',
-//		    token_secret = 'y8W6EkCA9o-DR4t5m14RZ30ePlg';
-//		      
-//		var encodedSignature = oauthSignature.generate('GET', yelp_url, parameters, consumer_secret, token_secret);
-//		  parameters.oauth_signature = encodedSignature;
-//
-//		// Send AJAX query via jQuery library.
-//		$.ajax({
-//		    url: yelp_url,
-//		    data: parameters,
-//		    cache: true,                // This is crucial to include as well to prevent jQuery from adding on a cache-buster parameter "_=23489489749837", invalidating our oauth-signature
-//		    dataType: 'jsonp',
-//		    //jsonpCallback: 'cb',
-//		    success: function(results) {
-//		      self.modal("<p>Please wait untill Yelp find the requested restaurant!</p>");
-//		      // Do stuff with results
-//		      //See if the requested restaurant exists in Yelp database
-//		      try {
-//			      var location = results.businesses[0].location.address[0];
-//			      var locationArray, categories;
-//			      console.log("SUCCCESS! %o", results);
-//			      if (location === undefined || location === null) {
-//			    	  self.modal("<p>no information available for this location from Yelp</p>");
-//			      }
-//			      else {
-//				      locationArray = location.split(" ");
-//				      location = locationArray[0] + " " + locationArray[1];
-//				      if (address.indexOf(location) >= 0) {
-//				      	categories = results.businesses[0].categories[0][1];
-//				      	self.modal('<h3>' + name + '</h3><p>Category: ' + categories + '</p>'
-//				      				+ '<img src="' + results.businesses[0].rating_img_url + '"><br>'
-//				      				+ '<img src="' + results.businesses[0].image_url + '"><br><br>'
-//				      				+ "<p>Visit the restaurant's Yelp " + '<a href="' + results.businesses[0].url + '">page</a><br>' 
-//				      				+ '<p>And a review snippet:<br><br> "' + results.businesses[0].snippet_text + '"</p>');
-//				      }
-//	
-//				      else {
-//				      	self.modal("<p>Sorry, Yelp couldn't find the requested restaurant!</p>");
-//				      }
-//			      } 
-//		      }
-//		      catch(err) {
-//		    	  console.log("error");
-//			      self.modal("<p>no information available for this location from Yelp</p>");
-//		      }
-//		    },
-//		    error: function(error) {
-//		      // Do stuff on fail
-//		      console.log("error");
-//		      self.modal("<p>Sorry, Yelp doesn't support your city!</p>");
-//		    }
-//		});
-//
-//	}
+            var parameters = [];
+            parameters.push(['term', terms]);
+            parameters.push(['location', near]);
+            parameters.push(['radius_filter', '0.1']);
+            parameters.push(['limit', 1]);
+            parameters.push(['callback', 'cb']);
+            parameters.push(['oauth_consumer_key', auth.consumerKey]);
+            parameters.push(['oauth_consumer_secret', auth.consumerSecret]);
+            parameters.push(['oauth_token', auth.accessToken]);
+            parameters.push(['oauth_signature_method', 'HMAC-SHA1']);
 
-	$("#city").val("Colombo");
+            var message = {
+                'action' : 'https://api.yelp.com/v2/search',
+                'method' : 'GET',
+                'parameters' : parameters
+            };
+    
+            OAuth.setTimestampAndNonce(message);
+            OAuth.SignatureMethod.sign(message, accessor);
+    
+            var parameterMap = OAuth.getParameterMap(message.parameters);
+                
+            $.ajax({
+                url : message.action,
+                data : parameterMap,
+                dataType : 'jsonp',
+                success : function (results){
+                	if (results.businesses && results.businesses.length > 0) {
+                   	 var business = results.businesses[0],
+                        name = business.name,
+                        img = business.image_url,
+                        rating_img = business.rating_img_url,
+                        phone = /^\+1/.test(business.display_phone) ? business.display_phone : '',
+                        url = business.url,
+                        count = business.review_count,
+                        stars = business.rating_img_url,
+                        rate = business.rating,
+                        snippet_text = business.snippet_text
+                        loc = {
+                            lat: business.location.coordinate.latitude,
+                            lon: business.location.coordinate.longitude,
+                            address: business.location.display_address[0] + '<br>' + business.location.display_address[business.location.display_address.length - 1]
+                        },
+                        review = {
+                            img: business.snippet_image_url,
+                            txt: business.snippet_text
+                        };
+                    
+               	     var address = loc.address;
+               	     var contentStr = '<h3>' + name + '</h3><p>Name: ' + name + '</p>'
+	      				+ '<img src="' + rating_img + '"><br>'
+	      				+ '<img src="' + img + '"><br><br>'
+	      				+ "<p>Visit the restaurant's Yelp " + '<a href="' + url + '">page</a><br>' 
+	      				+ '<p>And a review snippet:<br><br> "' + snippet_text + '"</p>';
+               	     
+               	     	console.log("cb: " + contentStr);
+               	     
+               	     	if(basicInfowindow === null || basicInfowindow === undefined){
+	            			basicInfowindow = new google.maps.InfoWindow();
+	            		} else {
+	            			basicInfowindow.close();
+	            		}
+	            		basicInfowindow.setContent(contentStr); 
+	
+	            		basicInfowindow.open(map, marker);
+                   } else {
+                	    var searchedFor = $('input').val();
+                	    
+	   		            if(basicInfowindow === null || basicInfowindow === undefined){
+	   	        			basicInfowindow = new google.maps.InfoWindow();
+	   	        	    } else {
+	   	        			basicInfowindow.close();
+	   	        	    }
+	   	        	    basicInfowindow.setContent("<p>Sorry, Yelp couldn't find the requested restaurant!</p>"); 
+	   
+	   	        	    basicInfowindow.open(map, marker);
+                   }
+                },
+                cache: true
+            })
+            .done(function(data, textStatus, jqXHR) {
+                    console.log('success[' + data + '], status[' + textStatus + '], jqXHR[' + JSON.stringify(jqXHR) + ']');
+                }
+            )
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                                console.log('error[' + errorThrown + '], status[' + textStatus + '], jqXHR[' + JSON.stringify(jqXHR) + ']');
+                    }
+            );
+	}
+
+	$("#city").val("San Francisco");
 	self.initMap();
 }
 
 
 
 ko.applyBindings(new ViewModelMapApp());
+
+
+//Create a new marker with the passed in color
+function makeMarkerIcon(markerColor) {
+  var markerImage = new google.maps.MarkerImage(
+    'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|'+ markerColor +
+    '|40|_|%E2%80%A2',
+    new google.maps.Size(21, 34),
+    new google.maps.Point(0, 0),
+    new google.maps.Point(10, 34),
+    new google.maps.Size(21,34));
+  return markerImage;
+}

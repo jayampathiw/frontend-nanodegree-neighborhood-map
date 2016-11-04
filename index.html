@@ -34,7 +34,7 @@
 						</form>
 						<ul data-bind="foreach: RestaurantsList">
 							<li class="restaurant">
-							Name: <span data-bind="text: name, click: $parent.infoFunction"></span></a><br>
+							Name: <span style="cursor:pointer" data-bind="text: name, click: $parent.infoFunction"></span><br>
 								Rating: <span data-bind="text: rating"></span><br>
 								Address: <span data-bind="text: address"></span><br>
 							</li>
@@ -47,10 +47,10 @@
 			</section>
 		</div>
 		<script src="js/jquery.min.js"></script>
-		<script src="js/bootstrap.min.js"></script>
 		<script src="js/knockout.js"></script>
 		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3s6wU-Afuxk4TObkyqm6oXctRAnksNNg&libraries=places"></script>
-		<script src="js/oauth-signature.js"></script>
 		<script src="js/app.js"></script>
+		<script src="js/OAuth.js"></script>
+        <script src="js/SHA1.js"></script>
 	</body>
 </html>
