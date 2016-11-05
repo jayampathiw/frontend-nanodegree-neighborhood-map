@@ -20,7 +20,7 @@ var ViewModelMapApp = function() {
 	self.removedRestaurants = [];
 	self.markers = [];
 	self.cityExists = ko.observable(false);
-	self.city = "";
+	self.city = ko.observable("");
 	self.modal = ko.observable("");
 	self.setMapOnAll = function(map) {
 	  for (var i = 0; i < self.markers.length; i++) {
@@ -35,8 +35,7 @@ var ViewModelMapApp = function() {
 	//Init map, markers and initialRestaurants
 	self.initMap = function() {
 		//use the city that the user provides
-		self.city = $("#city").val();
-		var APIstr = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + self.city + '&key=AIzaSyB3s6wU-Afuxk4TObkyqm6oXctRAnksNNg';
+		var APIstr = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + self.city() + '&key=AIzaSyB3s6wU-Afuxk4TObkyqm6oXctRAnksNNg';
 		var lat, lng;
 
 		//initialize all arrays and values
@@ -92,46 +91,37 @@ var ViewModelMapApp = function() {
 						
 						self.clearClickedMarkers();
 
-
-
 				   		//create new Restaurant and add it to my list of restaurants
 					    self.RestaurantsList.push( new Restaurant(place.name, place.vicinity, place.rating, map, marker) );
 
 					    //display streetview thumbnail when user hovers on marker
 					    (function (i) {
-							google.maps.event.addListener(self.markers[i], 'mouseover', function() {
-								self.clearClickedMarkers();
-								console.log(self.markers[i].position.lng());
-								var contentStr = '<h5><strong>' + self.RestaurantsList()[i].name + '</strong></h5>' + 
-											  '<div id="infoWindowStreetview"><img src="https://maps.googleapis.com/maps/api/streetview?size=200x200&location=' + self.RestaurantsList()[i].marker.position.lat() + ',' + self.RestaurantsList()[i].marker.position.lng() + '&heading=151.78&pitch=-0.76&key=AIzaSyBS025Zl1N-CLVM05-O0_vVO-4heTIpP38"></div>';
-									
-								console.log(contentStr);
-								if(basicInfowindow === null || basicInfowindow === undefined){
-									basicInfowindow = new google.maps.InfoWindow();
-								} else {
-									basicInfowindow.close();
-								}
-								basicInfowindow.setContent(contentStr); 
-
-								basicInfowindow.open(map, self.RestaurantsList()[i].marker);
-								//close infoWindow on mouseout
-								google.maps.event.addListener(self.markers[i], 'mouseout', function() {
-									basicInfowindow.close();
-								});
+							google.maps.event.addListener(self.markers[i], 'click', function() {								
+								self.showmakerInfowindow(self.RestaurantsList()[i]);
 							});
 						})(i);
 
 					}
+				} else {
+					console.log("error");
+					self.cityExists(false);
+					$("#modelHeadder").text("Worning");
+					$("#message").html("<p>Couldn't find the requested restaurants!</p>");
+					$("#infoModal").modal({backdrop: "static"});
+					
 				}
 			});
-			}).error(function() {
-				console.log("error");
+			}).fail(function(jqXHR, status, error){
+				console.log('error[' + error + '], status[' + status + '], jqXHR[' + JSON.stringify(jqXHR) + ']');
 				self.cityExists(false);
+				$("#modelHeadder").text("Error");
+				$("#message").html("<p>Error occurred while searching the requested restaurants!</p>");
+				$("#infoModal").modal({backdrop: "static"});
 		});
 		
 		//Add an h2 DOM element
-		self.city = self.city.toLowerCase();
-		var cityRefinded = self.city.charAt(0).toUpperCase() + self.city.slice(1);
+		self.city(self.city().toLowerCase());
+		var cityRefinded = self.city().charAt(0).toUpperCase() + self.city().slice(1);
 		$('#restaurantHeader').text('Restaurants in downtown ' + cityRefinded + '');
 		
 	};	
@@ -184,6 +174,16 @@ var ViewModelMapApp = function() {
 	self.showmakerInfowindow = function(restaurant) {
 		self.clearClickedMarkers();
 		console.log(restaurant.marker.position.lng());
+		
+		//Opening the info window
+		if(basicInfowindow === null || basicInfowindow === undefined){
+			basicInfowindow = new google.maps.InfoWindow();
+		} else {
+			basicInfowindow.close();
+		}
+		basicInfowindow.setContent(""); 
+		basicInfowindow.open(map, restaurant.marker);
+		
 		
 		self.YelpRequest(restaurant.name, restaurant.address, restaurant.marker);
 		
@@ -243,75 +243,67 @@ var ViewModelMapApp = function() {
     
             var parameterMap = OAuth.getParameterMap(message.parameters);
                 
-            $.ajax({
+            var request = $.ajax({
                 url : message.action,
                 data : parameterMap,
                 dataType : 'jsonp',
-                success : function (results){
-                	if (results.businesses && results.businesses.length > 0) {
-                   	 var business = results.businesses[0],
-                        name = business.name,
-                        img = business.image_url,
-                        rating_img = business.rating_img_url,
-                        phone = /^\+1/.test(business.display_phone) ? business.display_phone : '',
-                        url = business.url,
-                        count = business.review_count,
-                        stars = business.rating_img_url,
-                        rate = business.rating,
-                        snippet_text = business.snippet_text
-                        loc = {
-                            lat: business.location.coordinate.latitude,
-                            lon: business.location.coordinate.longitude,
-                            address: business.location.display_address[0] + '<br>' + business.location.display_address[business.location.display_address.length - 1]
-                        },
-                        review = {
-                            img: business.snippet_image_url,
-                            txt: business.snippet_text
-                        };
-                    
-               	     var address = loc.address;
-               	     var contentStr = '<h3>' + name + '</h3><p>Name: ' + name + '</p>'
-	      				+ '<img src="' + rating_img + '"><br>'
-	      				+ '<img src="' + img + '"><br><br>'
-	      				+ "<p>Visit the restaurant's Yelp " + '<a href="' + url + '">page</a><br>' 
-	      				+ '<p>And a review snippet:<br><br> "' + snippet_text + '"</p>';
-               	     
-               	     	console.log("cb: " + contentStr);
-               	     
-               	     	if(basicInfowindow === null || basicInfowindow === undefined){
-	            			basicInfowindow = new google.maps.InfoWindow();
-	            		} else {
-	            			basicInfowindow.close();
-	            		}
-	            		basicInfowindow.setContent(contentStr); 
-	
-	            		basicInfowindow.open(map, marker);
-                   } else {
-                	    var searchedFor = $('input').val();
-                	    
-	   		            if(basicInfowindow === null || basicInfowindow === undefined){
-	   	        			basicInfowindow = new google.maps.InfoWindow();
-	   	        	    } else {
-	   	        			basicInfowindow.close();
-	   	        	    }
-	   	        	    basicInfowindow.setContent("<p>Sorry, Yelp couldn't find the requested restaurant!</p>"); 
-	   
-	   	        	    basicInfowindow.open(map, marker);
-                   }
-                },
                 cache: true
             })
-            .done(function(data, textStatus, jqXHR) {
-                    console.log('success[' + data + '], status[' + textStatus + '], jqXHR[' + JSON.stringify(jqXHR) + ']');
+            .done(function(results, textStatus, jqXHR) {
+                    console.log('success[' + results + '], status[' + textStatus + '], jqXHR[' + JSON.stringify(jqXHR) + ']');
+                    if(textStatus === "success"){
+                    	if (results.businesses && results.businesses.length > 0) {
+                    		var business = results.businesses[0],
+    		                   name = business.name,
+    		                   img = business.image_url,
+    		                   rating_img = business.rating_img_url,
+    		                   phone = /^\+1/.test(business.display_phone) ? business.display_phone : '',
+    		                   url = business.url,
+    		                   count = business.review_count,
+    		                   stars = business.rating_img_url,
+    		                   rate = business.rating,
+    		                   snippet_text = business.snippet_text
+    		                   loc = {
+    		                       lat: business.location.coordinate.latitude,
+    		                       lon: business.location.coordinate.longitude,
+    		                       address: business.location.display_address[0] + '<br>' + business.location.display_address[business.location.display_address.length - 1]
+    		                   },
+    		                   review = {
+    		                       img: business.snippet_image_url,
+    		                       txt: business.snippet_text
+    		                   };
+    		               
+    		          	     var address = loc.address;
+
+		    		         var contentStr = '<div class="yelpInfoWindow"><div class="media">';
+		    		          	 contentStr += '<a class="media-left" href="#">';
+		    		          	 contentStr += '<img class="media-object" src="'+ img +'" alt="Generic placeholder image">';
+		    		          	 contentStr += '</a><div class="media-body">';
+		    		          	 contentStr += '<h4 class="media-heading">Media heading</h4>';
+		    		          	 contentStr += '<span>' + count + ' Reviews </span>';
+		    		          	 //contentStr += '<p>' + snippet_text + '</p>';
+		    		          	 contentStr += '<img src="' + stars + '" height=17 width=84 alt="Yelp Rating" class="img-responsive">';
+		    		          	 contentStr += '<p><a class="btn btn-default btn-small" href="' + url + '" target="_blank">Yelp it!</a></p>';
+		    		          	 contentStr += '</div></div></div>';
+		    		          	 
+    		          	     
+    		          	     console.log("cb: " + contentStr);
+    		          	     
+    		          	     basicInfowindow.setContent(contentStr); 
+    		
+    		              } else {
+    		            	  basicInfowindow.setContent("<p>Sorry, Yelp couldn't find the requested restaurant!</p>"); 
+    		              }
+                    }
                 }
             )
             .fail(function(jqXHR, textStatus, errorThrown) {
-                                console.log('error[' + errorThrown + '], status[' + textStatus + '], jqXHR[' + JSON.stringify(jqXHR) + ']');
-                    }
-            );
+            	console.log('error[' + errorThrown + '], status[' + textStatus + '], jqXHR[' + JSON.stringify(jqXHR) + ']');
+                basicInfowindow.setContent("<p>Sorry, Error occurred while Yelp requested restaurant!</p>"); 
+            });
 	}
 
-	$("#city").val("San Francisco");
+	self.city("San Francisco");
 	self.initMap();
 }
 
@@ -330,4 +322,10 @@ function makeMarkerIcon(markerColor) {
     new google.maps.Point(10, 34),
     new google.maps.Size(21,34));
   return markerImage;
+}
+
+function googleMapError(){
+	$("#modelHeadder").text("Error");
+	$("#message").html("<p>Error occurred while loading google maps!</p>");
+	$("#infoModal").modal({backdrop: "static"});
 }
